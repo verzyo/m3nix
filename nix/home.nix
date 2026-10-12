@@ -43,11 +43,15 @@ in {
 
     package = lib.mkPackageOption pkgs "matugen" {};
 
-    yazi.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = cfg.autoEnable;
-      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
-      description = "Whether to enable the Yazi file manager template.";
+    yazi = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = cfg.autoEnable;
+        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        description = "Whether to enable the Yazi file manager template.";
+      };
+
+      package = lib.mkPackageOption pkgs "yazi" {};
     };
 
     discord = {
@@ -144,6 +148,7 @@ in {
             yazi = {
               input_path = "${matugenTemplates}/yazi-theme.toml";
               output_path = "${configHome}/yazi/theme.toml";
+              post_hook = "${lib.getExe' cfg.yazi.package "ya"} emit-to 0 app:theme || true";
             };
           }
           // lib.optionalAttrs cfg.discord.enable {
