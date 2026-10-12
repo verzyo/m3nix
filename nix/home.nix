@@ -54,6 +54,15 @@ in {
       package = lib.mkPackageOption pkgs "yazi" {};
     };
 
+    dolphin = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = cfg.autoEnable;
+        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        description = "Whether to enable the Dolphin / KDE file manager template.";
+      };
+    };
+
     discord = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -148,7 +157,14 @@ in {
             yazi = {
               input_path = "${matugenTemplates}/yazi-theme.toml";
               output_path = "${configHome}/yazi/theme.toml";
-              post_hook = "${lib.getExe' cfg.yazi.package "ya"} emit-to 0 app:theme || true";
+              post_hook = "${lib.getExe' cfg.yazi.package "ya"} emit-to 0 app:theme </dev/null >/dev/null 2>&1 || true";
+            };
+          }
+          // lib.optionalAttrs cfg.dolphin.enable {
+            dolphin = {
+              input_path = "${root}/templates/kde/kdeglobals";
+              output_path = "${configHome}/kdeglobals";
+              post_hook = "qdbus6 org.kde.KGlobalSettings /KGlobalSettings notifyChange 0 0 2>/dev/null || true";
             };
           }
           // lib.optionalAttrs cfg.discord.enable {
