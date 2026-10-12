@@ -43,6 +43,13 @@ in {
 
     package = lib.mkPackageOption pkgs "matugen" {};
 
+    btop.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = cfg.autoEnable;
+      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+      description = "Whether to enable the btop template.";
+    };
+
     yazi = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -153,7 +160,14 @@ in {
             trap - EXIT
           '';
         in
-          lib.optionalAttrs cfg.yazi.enable {
+          lib.optionalAttrs cfg.btop.enable {
+            btop = {
+              input_path = "${matugenTemplates}/btop.theme";
+              output_path = "${configHome}/btop/themes/meowtugen.theme";
+              post_hook = "pkill -USR2 btop || true";
+            };
+          }
+          // lib.optionalAttrs cfg.yazi.enable {
             yazi = {
               input_path = "${matugenTemplates}/yazi-theme.toml";
               output_path = "${configHome}/yazi/theme.toml";
