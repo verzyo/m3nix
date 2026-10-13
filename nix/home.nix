@@ -126,6 +126,12 @@ in {
       defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
       description = "Whether to enable the niri wm template.";
     };
+
+    templates = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
+      default = {};
+      description = "Extra templates to load.";
+    };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -226,7 +232,8 @@ in {
               input_path = "${dmsTemplates}/niri-colors.kdl";
               output_path = "${configHome}/niri/colors.kdl";
             };
-          };
+          }
+          // cfg.templates;
       };
     }
     {
