@@ -60,43 +60,43 @@ toolbar .toolbarbutton-1 {
 }
 
 .identity-color-blue {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#b4befe" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#7287fd" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#b4befe" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#7287fd" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#b4befe" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#7287fd" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#b4befe" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#7287fd" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-turquoise {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#89dceb" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#04a5e5" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#89dceb" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#04a5e5" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#89dceb" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#04a5e5" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#89dceb" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#04a5e5" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-green {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#94e2d5" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#179299" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#94e2d5" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#179299" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#94e2d5" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#179299" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#94e2d5" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#179299" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-yellow {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#fab387" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#fe640b" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#fab387" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#fe640b" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#fab387" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#fe640b" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#fab387" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#fe640b" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-orange {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#f9e2af" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#df8e1d" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#f9e2af" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#df8e1d" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#f9e2af" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#df8e1d" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#f9e2af" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#df8e1d" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-red {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#eba0ac" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#e64553" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#eba0ac" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#e64553" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#eba0ac" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#e64553" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#eba0ac" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#e64553" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-pink {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#f5c2e7" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#ea76cb" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#f5c2e7" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#ea76cb" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#f5c2e7" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#ea76cb" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#f5c2e7" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#ea76cb" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 .identity-color-purple {
-  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#cba6f7" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#8839ef" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
-  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#cba6f7" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* else *>{{ "#8839ef" | to_color | harmonize: {{ colors.primary.default.hex }} | format: "hex" }}<* endif *> !important;
+  --identity-tab-color: <* if {{ is_dark_mode }} *>{{ "#cba6f7" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#8839ef" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
+  --identity-icon-color: <* if {{ is_dark_mode }} *>{{ "#cba6f7" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* else *>{{ "#8839ef" | to_color | harmonize: {{ colors.primary.default.hex }} | saturate: 15.0, "hsl" | format: "hex" }}<* endif *> !important;
 }
 
 #zen-appcontent-navbar-container {
