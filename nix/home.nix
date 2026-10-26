@@ -12,6 +12,10 @@
   cfg = config.programs.meowtugen;
   configHome = config.xdg.configHome;
 
+  papirusTheme = "Papirus-Meowtugen";
+  papirusDir = "${config.xdg.dataHome}/icons/${papirusTheme}";
+  papirusColors = "${config.xdg.cacheHome}/meowtugen/papirus-colors";
+
   sineModEntry = pkgs.writeText "meowtugen-sine-entry.json" (builtins.toJSON {
     meowtugen = {
       id = "meowtugen";
@@ -76,6 +80,27 @@ in {
         default = false;
         description = "Set qt.platformTheme to kde (and qt.style to breeze) so Qt apps read kdeglobals outside Plasma.";
       };
+
+      iconTheme = lib.mkOption {
+        type = lib.types.str;
+        default =
+          if cfg.papirus.enable
+          then papirusTheme
+          else "breeze-dark";
+        defaultText = lib.literalExpression ''if config.programs.meowtugen.papirus.enable then "${papirusTheme}" else "breeze-dark"'';
+        description = "Icon theme written to kdeglobals.";
+      };
+    };
+
+    papirus = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = cfg.autoEnable;
+        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        description = "Whether to generate ${papirusTheme}, a Papirus-Dark overlay with folder icons recolored to the matugen primary palette.";
+      };
+
+      package = lib.mkPackageOption pkgs "papirus-icon-theme" {};
     };
 
     discord = {
@@ -144,7 +169,7 @@ in {
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      home.packages = [cfg.package];
+      home.packages = [cfg.package] ++ lib.optional cfg.papirus.enable cfg.papirus.package;
 
       xdg.configFile."matugen/config.toml".source = (pkgs.formats.toml {}).generate "config.toml" {
         config = {};
@@ -173,6 +198,69 @@ in {
             mv "$TMP" "$SETTINGS"
             trap - EXIT
           '';
+
+          papirusRecolor = pkgs.writeShellScript "meowtugen-papirus-recolor" ''
+            set -eu
+            export PATH="${lib.makeBinPath [pkgs.coreutils pkgs.gnused]}:$PATH"
+
+            SRC="${cfg.papirus.package}/share/icons/Papirus-Dark"
+            THEME="${papirusDir}"
+            COLORS="${papirusColors}"
+
+            { read -r FRONT; read -r BACK; read -r GLYPH; } < "$COLORS"
+
+            STAMP="$SRC $FRONT $BACK $GLYPH"
+            if [ -f "$THEME/.stamp" ] && [ "$(cat "$THEME/.stamp")" = "$STAMP" ]; then
+              exit 0
+            fi
+
+            mkdir -p "$(dirname "$THEME")"
+            TMP="$(mktemp -d "$THEME.tmp.XXXXXX")"
+            trap 'rm -rf "$TMP"' EXIT
+
+            sed -e 's/^Name=.*/Name=${papirusTheme}/' \
+              -e 's/^Inherits=.*/Inherits=Papirus-Dark,breeze-dark,hicolor/' \
+              "$SRC/index.theme" > "$TMP/index.theme"
+
+            for DIR in "$SRC"/*/; do
+              DIR="''${DIR%/}"
+              SIZE="''${DIR##*/}"
+
+              # NNxNN@2x dirs are symlinks to their 1x counterpart
+              if [ -L "$DIR" ] && [ "$(readlink "$DIR")" = "''${SIZE%@2x}" ]; then
+                if [ -d "$TMP/''${SIZE%@2x}" ]; then
+                  ln -s "''${SIZE%@2x}" "$TMP/$SIZE"
+                fi
+                continue
+              fi
+
+              [ -d "$DIR/places" ] || continue
+              mkdir -p "$TMP/$SIZE/places"
+
+              # recolor every blue folder icon, including aliases like folder.svg
+              for ICON in "$DIR"/places/*; do
+                case "$(basename "$(readlink -f "$ICON")")" in
+                  folder-blue.svg | folder-blue-* | user-blue.svg | user-blue-*) ;;
+                  *) continue ;;
+                esac
+
+                sed -e "s/#5294e2/$FRONT/gI" -e "s/#4877b1/$BACK/gI" -e "s/#1d344f/$GLYPH/gI" \
+                  "$ICON" > "$TMP/$SIZE/places/''${ICON##*/}"
+              done
+            done
+
+            printf '%s' "$STAMP" > "$TMP/.stamp"
+
+            rm -rf "$THEME.old"
+            if [ -e "$THEME" ]; then
+              mv "$THEME" "$THEME.old"
+            fi
+            mv "$TMP" "$THEME"
+            trap - EXIT
+            rm -rf "$THEME.old"
+
+            ${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || true
+          '';
         in
           lib.optionalAttrs cfg.btop.enable {
             btop = {
@@ -190,9 +278,18 @@ in {
           }
           // lib.optionalAttrs cfg.dolphin.enable {
             dolphin = {
-              input_path = "${root}/templates/kde/kdeglobals";
+              input_path = pkgs.replaceVars "${root}/templates/kde/kdeglobals" {
+                inherit (cfg.dolphin) iconTheme;
+              };
               output_path = "${configHome}/kdeglobals";
               post_hook = "${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true";
+            };
+          }
+          // lib.optionalAttrs cfg.papirus.enable {
+            papirus = {
+              input_path = "${root}/templates/papirus/colors";
+              output_path = papirusColors;
+              post_hook = "${papirusRecolor}";
             };
           }
           // lib.optionalAttrs cfg.discord.enable {

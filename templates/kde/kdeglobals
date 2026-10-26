@@ -139,7 +139,7 @@ XftHintStyle=hintslight
 XftSubPixel=none
 
 [Icons]
-Theme=breeze-dark
+Theme=@iconTheme@
 
 [KDE]
 widgetStyle=Darkly
