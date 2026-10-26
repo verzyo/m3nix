@@ -66,10 +66,16 @@ in {
         type = lib.types.bool;
         default = cfg.autoEnable;
         defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
-        description = "Whether to enable the Dolphin / KDE file manager template.";
+        description = "Whether to enable the Dolphin / KDE file manager template. Outside Plasma, Qt apps only read kdeglobals with the kde platform theme; see setQtPlatformTheme.";
       };
 
       dbusPackage = lib.mkPackageOption pkgs "dbus" {};
+
+      setQtPlatformTheme = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Set qt.platformTheme to kde (and qt.style to breeze) so Qt apps read kdeglobals outside Plasma.";
+      };
     };
 
     discord = {
@@ -268,5 +274,12 @@ in {
         done
       '');
     }
+    (lib.mkIf (cfg.dolphin.enable && cfg.dolphin.setQtPlatformTheme) {
+      qt = {
+        enable = lib.mkDefault true;
+        platformTheme.name = lib.mkDefault "kde";
+        style.name = lib.mkDefault "breeze";
+      };
+    })
   ]);
 }
