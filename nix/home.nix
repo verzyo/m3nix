@@ -16,6 +16,48 @@
   papirusDir = "${config.xdg.dataHome}/icons/${papirusTheme}";
   papirusColors = "${config.xdg.cacheHome}/meowtugen/papirus-colors";
 
+  # blue papirus folder icons laid out as an overlay theme, recolored at runtime
+  papirusOverlay = pkgs.runCommand "papirus-meowtugen-overlay" {} ''
+    SRC="${cfg.papirus.package}/share/icons/Papirus-Dark"
+    mkdir -p $out
+
+    sed -e 's/^Name=.*/Name=${papirusTheme}/' \
+      -e 's/^Inherits=.*/Inherits=Papirus-Dark,breeze-dark,hicolor/' \
+      "$SRC/index.theme" > $out/index.theme
+
+    for DIR in "$SRC"/*/; do
+      DIR="''${DIR%/}"
+      SIZE="''${DIR##*/}"
+
+      # NNxNN@2x dirs are symlinks to their 1x counterpart
+      if [ -L "$DIR" ] && [ "$(readlink "$DIR")" = "''${SIZE%@2x}" ]; then
+        if [ -d "$out/''${SIZE%@2x}" ]; then
+          ln -s "''${SIZE%@2x}" "$out/$SIZE"
+        fi
+        continue
+      fi
+
+      [ -d "$DIR/places" ] || continue
+      mkdir -p "$out/$SIZE/places"
+
+      # every blue folder icon, including aliases like folder.svg
+      for ICON in "$DIR"/places/*; do
+        NAME="''${ICON##*/}"
+        TARGET="$(basename "$(readlink -f "$ICON")")"
+        case "$TARGET" in
+          folder-blue.svg | folder-blue-* | user-blue.svg | user-blue-*) ;;
+          *) continue ;;
+        esac
+
+        if [ -L "$ICON" ] && [ "$NAME" != "$TARGET" ] && [ -e "$DIR/places/$TARGET" ]; then
+          ln -s "$TARGET" "$out/$SIZE/places/$NAME"
+        else
+          cp "$ICON" "$out/$SIZE/places/$NAME"
+        fi
+      done
+    done
+  '';
+
   sineModEntry = pkgs.writeText "meowtugen-sine-entry.json" (builtins.toJSON {
     meowtugen = {
       id = "meowtugen";
@@ -201,9 +243,9 @@ in {
 
           papirusRecolor = pkgs.writeShellScript "meowtugen-papirus-recolor" ''
             set -eu
-            export PATH="${lib.makeBinPath [pkgs.coreutils pkgs.gnused]}:$PATH"
+            export PATH="${lib.makeBinPath [pkgs.coreutils pkgs.findutils pkgs.gnused]}:$PATH"
 
-            SRC="${cfg.papirus.package}/share/icons/Papirus-Dark"
+            SRC="${papirusOverlay}"
             THEME="${papirusDir}"
             COLORS="${papirusColors}"
 
@@ -218,36 +260,10 @@ in {
             TMP="$(mktemp -d "$THEME.tmp.XXXXXX")"
             trap 'rm -rf "$TMP"' EXIT
 
-            sed -e 's/^Name=.*/Name=${papirusTheme}/' \
-              -e 's/^Inherits=.*/Inherits=Papirus-Dark,breeze-dark,hicolor/' \
-              "$SRC/index.theme" > "$TMP/index.theme"
-
-            for DIR in "$SRC"/*/; do
-              DIR="''${DIR%/}"
-              SIZE="''${DIR##*/}"
-
-              # NNxNN@2x dirs are symlinks to their 1x counterpart
-              if [ -L "$DIR" ] && [ "$(readlink "$DIR")" = "''${SIZE%@2x}" ]; then
-                if [ -d "$TMP/''${SIZE%@2x}" ]; then
-                  ln -s "''${SIZE%@2x}" "$TMP/$SIZE"
-                fi
-                continue
-              fi
-
-              [ -d "$DIR/places" ] || continue
-              mkdir -p "$TMP/$SIZE/places"
-
-              # recolor every blue folder icon, including aliases like folder.svg
-              for ICON in "$DIR"/places/*; do
-                case "$(basename "$(readlink -f "$ICON")")" in
-                  folder-blue.svg | folder-blue-* | user-blue.svg | user-blue-*) ;;
-                  *) continue ;;
-                esac
-
-                sed -e "s/#5294e2/$FRONT/gI" -e "s/#4877b1/$BACK/gI" -e "s/#1d344f/$GLYPH/gI" \
-                  "$ICON" > "$TMP/$SIZE/places/''${ICON##*/}"
-              done
-            done
+            cp -RP "$SRC"/. "$TMP"
+            chmod -R u+w "$TMP"
+            find "$TMP" -type f -name '*.svg' -exec \
+              sed -i -e "s/#5294e2/$FRONT/gI" -e "s/#4877b1/$BACK/gI" -e "s/#1d344f/$GLYPH/gI" {} +
 
             printf '%s' "$STAMP" > "$TMP/.stamp"
 
