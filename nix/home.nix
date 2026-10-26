@@ -14,7 +14,6 @@
 
   papirusTheme = "Papirus-Meowtugen";
   papirusDir = "${config.xdg.dataHome}/icons/${papirusTheme}";
-  papirusColors = "${config.xdg.cacheHome}/meowtugen/papirus-colors";
 
   # blue papirus folder icons laid out as an overlay theme, recolored at runtime
   papirusOverlay = pkgs.runCommand "papirus-meowtugen-overlay" {} ''
@@ -137,9 +136,9 @@ in {
     papirus = {
       enable = lib.mkOption {
         type = lib.types.bool;
-        default = cfg.autoEnable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
-        description = "Whether to generate ${papirusTheme}, a Papirus-Dark overlay with folder icons recolored to the matugen primary palette.";
+        default = cfg.dolphin.enable;
+        defaultText = lib.literalExpression "config.programs.meowtugen.dolphin.enable";
+        description = "Whether to generate ${papirusTheme}, a Papirus-Dark overlay with folder icons recolored to the matugen primary palette. Requires the Dolphin template.";
       };
 
       package = lib.mkPackageOption pkgs "papirus-icon-theme" {};
@@ -211,6 +210,13 @@ in {
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
+      assertions = [
+        {
+          assertion = cfg.papirus.enable -> cfg.dolphin.enable;
+          message = "programs.meowtugen.papirus requires programs.meowtugen.dolphin.enable, which writes the palette it reads.";
+        }
+      ];
+
       home.packages = [cfg.package] ++ lib.optional cfg.papirus.enable cfg.papirus.package;
 
       xdg.configFile."matugen/config.toml".source = (pkgs.formats.toml {}).generate "config.toml" {
@@ -243,13 +249,12 @@ in {
 
           papirusRecolor = pkgs.writeShellScript "meowtugen-papirus-recolor" ''
             set -eu
-            export PATH="${lib.makeBinPath [pkgs.coreutils pkgs.findutils pkgs.gnused]}:$PATH"
+            export PATH="${lib.makeBinPath [pkgs.coreutils pkgs.findutils pkgs.gnugrep pkgs.gnused pkgs.gawk pkgs.procps pkgs.systemd]}:$PATH"
 
             SRC="${papirusOverlay}"
             THEME="${papirusDir}"
-            COLORS="${papirusColors}"
 
-            { read -r FRONT; read -r BACK; read -r GLYPH; } < "$COLORS"
+            IFS=, read -r FRONT BACK GLYPH <<< "$(sed -n 's/^PapirusColors=//p' "${configHome}/kdeglobals")"
 
             STAMP="$SRC $FRONT $BACK $GLYPH"
             if [ -f "$THEME/.stamp" ] && [ "$(cat "$THEME/.stamp")" = "$STAMP" ]; then
@@ -276,6 +281,29 @@ in {
             rm -rf "$THEME.old"
 
             ${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || true
+
+            # thumbnail workers keep the old folder icon for folder previews, so
+            # restart them and reload every dolphin view; the first reload only
+            # flushes the dead workers, the second regenerates the previews
+            pkill -f '/kio/thumbnail\.so thumbnail' 2>/dev/null || true
+            for PASS in 1 2; do
+              [ "$PASS" = 2 ] && sleep 1
+              for SERVICE in $(busctl --user list --no-legend 2>/dev/null | awk '$1 ~ /^org\.kde\.dolphin-/ {print $1}'); do
+                for ACTION in $(busctl --user tree --list "$SERVICE" 2>/dev/null | grep '/actions/view_redisplay$'); do
+                  busctl --user call "$SERVICE" "$ACTION" org.qtproject.Qt.QAction trigger 2>/dev/null || true
+                done
+              done
+            done
+          '';
+
+          # icons must be refreshed before the palette notification, so the
+          # places panel repaints with the recolored icons
+          kdeReload = pkgs.writeShellScript "meowtugen-kde-reload" ''
+            ${lib.optionalString cfg.papirus.enable "${papirusRecolor} || true"}
+
+            # darkly only reloads header (toolbar) colors through KConfigWatcher
+            ${lib.getExe' pkgs.systemd "busctl"} --user emit /kdeglobals org.kde.kconfig.notify ConfigChanged 'a{saay}' 2 Colors:Header 0 Colors:Window 0 2>/dev/null || true
+            ${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true
           '';
         in
           lib.optionalAttrs cfg.btop.enable {
@@ -298,14 +326,7 @@ in {
                 inherit (cfg.dolphin) iconTheme;
               };
               output_path = "${configHome}/kdeglobals";
-              post_hook = "${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true";
-            };
-          }
-          // lib.optionalAttrs cfg.papirus.enable {
-            papirus = {
-              input_path = "${root}/templates/papirus/colors";
-              output_path = papirusColors;
-              post_hook = "${papirusRecolor}";
+              post_hook = "${kdeReload}";
             };
           }
           // lib.optionalAttrs cfg.discord.enable {
