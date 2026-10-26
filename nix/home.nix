@@ -69,7 +69,7 @@ in {
         description = "Whether to enable the Dolphin / KDE file manager template.";
       };
 
-      qttoolsPackage = lib.mkPackageOption pkgs ["kdePackages" "qttools"] {};
+      dbusPackage = lib.mkPackageOption pkgs "dbus" {};
     };
 
     discord = {
@@ -186,7 +186,7 @@ in {
             dolphin = {
               input_path = "${root}/templates/kde/kdeglobals";
               output_path = "${configHome}/kdeglobals";
-              post_hook = "${lib.getExe' cfg.dolphin.qttoolsPackage "qdbus"} org.kde.KGlobalSettings /KGlobalSettings notifyChange 0 0 2>/dev/null || true";
+              post_hook = "${lib.getExe' cfg.dolphin.dbusPackage "dbus-send"} --session --type=signal /KGlobalSettings org.kde.KGlobalSettings.notifyChange int32:0 int32:0 2>/dev/null || true";
             };
           }
           // lib.optionalAttrs cfg.discord.enable {
