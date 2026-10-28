@@ -10,6 +10,8 @@
   const POLL_MS = 100;
   const SETTLE_MS = 50;
   const ACTIVE_PREF = "meowtugen.hotreload.active";
+  const SCHEME_PREF = "zen.view.window.scheme";
+  const SCHEMES = { dark: 0, light: 1 };
 
   const PATH = PathUtils.join(PathUtils.profileDir, "chrome", "meowtugen.css");
   const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
@@ -28,10 +30,19 @@
     Services.prefs.getDefaultBranch("").setBoolPref(ACTIVE_PREF, true);
   }
 
+  // follow matugen's --mode instead of the system color scheme
+  function applyScheme(css) {
+    const scheme = SCHEMES[/--meowtugen-scheme:\s*(\w+)/.exec(css)?.[1]];
+    if (scheme !== undefined && Services.prefs.getIntPref(SCHEME_PREF, 2) !== scheme) {
+      Services.prefs.setIntPref(SCHEME_PREF, scheme);
+    }
+  }
+
   let prev = null;
   async function reload() {
     try {
       const css = await IOUtils.readUTF8(PATH);
+      applyScheme(css);
       const uri = dataUri(css);
 
       if (uri === prev) {
@@ -120,6 +131,13 @@
     lastFp = await fingerprint();
     if (Services.prefs.getBoolPref(ACTIVE_PREF, false)) {
       await reload();
+    } else {
+      // the startup sheet covers the colors, but the mode may have changed while zen was closed
+      try {
+        applyScheme(await IOUtils.readUTF8(PATH));
+      } catch (e) {
+        console.error(`[meowtugen hot-reload]: ${e}`);
+      }
     }
 
     loop();

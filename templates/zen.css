@@ -1,4 +1,5 @@
 :root {
+  --meowtugen-scheme: <* if {{ is_dark_mode }} *>dark<* else *>light<* endif *>;
   --zen-primary-color: {{colors.primary_container.default.hex}} !important;
   --toolbarbutton-icon-fill: {{colors.primary.default.hex}} !important;
   --toolbar-field-color: {{colors.on_background.default.hex}} !important;
