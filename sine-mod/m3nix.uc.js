@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name            Hot Reload m3owtugen.css
-// @description     Re-applies chrome/m3owtugen.css (matugen output) on save, no restart
+// @name            Hot Reload m3nix.css
+// @description     Re-applies chrome/m3nix.css (matugen output) on save, no restart
 // @include         chrome://browser/content/browser.xhtml
 // ==/UserScript==
 
@@ -9,11 +9,11 @@
 
   const POLL_MS = 100;
   const SETTLE_MS = 50;
-  const ACTIVE_PREF = "m3owtugen.hotreload.active";
+  const ACTIVE_PREF = "m3nix.hotreload.active";
   const SCHEME_PREF = "zen.view.window.scheme";
   const SCHEMES = { dark: 0, light: 1 };
 
-  const PATH = PathUtils.join(PathUtils.profileDir, "chrome", "m3owtugen.css");
+  const PATH = PathUtils.join(PathUtils.profileDir, "chrome", "m3nix.css");
   const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
   const wu = window.windowUtils;
   const dataUri = css => "data:text/css;charset=utf-8," + encodeURIComponent(css);
@@ -32,7 +32,7 @@
 
   // follow matugen's --mode instead of the system color scheme
   function applyScheme(css) {
-    const scheme = SCHEMES[/--m3owtugen-scheme:\s*(\w+)/.exec(css)?.[1]];
+    const scheme = SCHEMES[/--m3nix-scheme:\s*(\w+)/.exec(css)?.[1]];
     if (scheme !== undefined && Services.prefs.getIntPref(SCHEME_PREF, 2) !== scheme) {
       Services.prefs.setIntPref(SCHEME_PREF, scheme);
     }
@@ -57,9 +57,9 @@
       prev = uri;
       retireStartupSheet();
 
-      console.log(`[m3owtugen hot-reload]: applied`);
+      console.log(`[m3nix hot-reload]: applied`);
     } catch (e) {
-      console.error(`[m3owtugen hot-reload]: ${e}`);
+      console.error(`[m3nix hot-reload]: ${e}`);
     }
   }
 
@@ -110,7 +110,7 @@
     try {
       await tick();
     } catch (e) {
-      console.error(`[m3owtugen hot-reload]: ${e}`);
+      console.error(`[m3nix hot-reload]: ${e}`);
     }
 
     if (!stopped) {
@@ -136,7 +136,7 @@
       try {
         applyScheme(await IOUtils.readUTF8(PATH));
       } catch (e) {
-        console.error(`[m3owtugen hot-reload]: ${e}`);
+        console.error(`[m3nix hot-reload]: ${e}`);
       }
     }
 

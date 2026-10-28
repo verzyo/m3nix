@@ -33,8 +33,8 @@
     pkgs = import nixpkgs {inherit system;};
   in {
     homeModules = rec {
-      m3owtugen = import ./nix/home.nix {inherit (inputs) dms themes community-templates;};
-      default = m3owtugen;
+      m3nix = import ./nix/home.nix {inherit (inputs) dms themes community-templates;};
+      default = m3nix;
     };
 
     formatter.${system} =
