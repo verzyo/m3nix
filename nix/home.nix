@@ -60,11 +60,72 @@
     inherit templates;
   };
 
-  # additional noctalia m3 tokens
-  extraTokens = mode: {
-    hover = "{{ colors.tertiary.${mode}.hex }}";
-    on_hover = "{{ colors.on_tertiary.${mode}.hex }}";
+  # base16 slot for each ansi color, bright ones from base24 when the scheme has them
+  ansiSlots = {
+    red = {
+      normal = "08";
+      bright = "12";
+    };
+    yellow = {
+      normal = "0A";
+      bright = "13";
+    };
+    green = {
+      normal = "0B";
+      bright = "14";
+    };
+    cyan = {
+      normal = "0C";
+      bright = "15";
+    };
+    blue = {
+      normal = "0D";
+      bright = "16";
+    };
+    magenta = {
+      normal = "0E";
+      bright = "17";
+    };
   };
+
+  # tinted theming yaml (palette or flat layout) or an attrset of baseXX colors, keyed by slot
+  schemeColors = scheme: let
+    raw =
+      if builtins.isAttrs scheme
+      then lib.mapAttrs' (name: lib.nameValuePair (lib.removePrefix "base" name)) scheme
+      else
+        lib.listToAttrs (lib.concatMap (line: let
+          match = builtins.match ''[[:space:]]*base([0-9A-Fa-f]{2})[[:space:]]*:[[:space:]]*["']?#?([0-9A-Fa-f]{6})["']?.*'' line;
+        in
+          lib.optional (match != null) (lib.nameValuePair (lib.elemAt match 0) (lib.elemAt match 1)))
+        (lib.splitString "\n" (builtins.readFile scheme)));
+  in
+    lib.mapAttrs' (slot: color: lib.nameValuePair (lib.toUpper slot) "#${lib.toLower (lib.removePrefix "#" color)}") raw;
+
+  modes = ["dark" "light"];
+
+  base16 = lib.genAttrs modes (mode: lib.mapNullable schemeColors cfg.base16.scheme.${mode});
+  missingSlots = mode:
+    lib.optionals (base16.${mode} != null)
+    (lib.filter (slot: !(base16.${mode} ? ${slot})) (lib.mapAttrsToList (_: slots: slots.normal) ansiSlots));
+
+  # noctalia fills in any terminal token missing here from the m3 roles
+  base16Tokens = mode: let
+    colors = base16.${mode};
+  in
+    lib.optionalAttrs (colors != null) (lib.concatMapAttrs (name: slots: {
+        "terminal_normal_${name}" = colors.${slots.normal};
+        "terminal_bright_${name}" = colors.${slots.bright} or colors.${slots.normal};
+      })
+      ansiSlots);
+
+  # additional noctalia m3 tokens
+  extraTokens = mode:
+    {
+      hover = "{{ colors.tertiary.${mode}.hex }}";
+      on_hover = "{{ colors.on_tertiary.${mode}.hex }}";
+    }
+    // base16Tokens mode;
 
   themeJsonMode = mode: ''
     "${mode}": {
@@ -88,9 +149,31 @@ in {
         enable = lib.mkEnableOption "the ${app.name} template (${app.category})";
       })
       apps;
+
+    base16.scheme = lib.genAttrs modes (mode:
+      lib.mkOption {
+        type = lib.types.nullOr (lib.types.oneOf [lib.types.path lib.types.str (lib.types.attrsOf lib.types.str)]);
+        default = null;
+        example = lib.literalExpression ''"''${pkgs.base16-schemes}/share/themes/catppuccin-${
+            if mode == "dark"
+            then "mocha"
+            else "latte"
+          }.yaml"'';
+        description = ''
+          Base16 or base24 scheme for the ${mode} mode terminal colors, as a Tinted Theming yaml file
+          or an attrset of `baseXX` colors. When null, noctalia derives them from the material roles.
+        '';
+      });
   };
 
   config = lib.mkIf cfg.enable {
+    assertions =
+      map (mode: {
+        assertion = missingSlots mode == [];
+        message = "m3nix: base16.scheme.${mode} is missing ${lib.concatMapStringsSep ", " (slot: "base${slot}") (missingSlots mode)}";
+      })
+      modes;
+
     warnings = map (entry: "m3nix: skipping template ${entry}, it uses dynamic paths or a gtk extension, which are not supported yet") skipped;
 
     home.packages = with cfg.packages; [
