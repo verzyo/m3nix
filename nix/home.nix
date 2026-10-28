@@ -164,7 +164,14 @@ in {
 
     packages = {
       matugen = lib.mkPackageOption pkgs "matugen" {};
-      noctalia = lib.mkPackageOption pkgs "noctalia" {};
+
+      noctalia-theme = lib.mkOption {
+        type = lib.types.package;
+        # built from the same noctalia revision as the built-in templates
+        default = pkgs.callPackage ./noctalia-theme/package.nix {src = noctalia;};
+        defaultText = lib.literalMD "noctalia's template renderer, built from the pinned noctalia source";
+        description = "Renderer for the noctalia templates.";
+      };
     };
 
     apps =
@@ -233,10 +240,7 @@ in {
       ++ map (mode: "m3nix: base16.scheme.${mode}.filters has no effect without base16.scheme.${mode}.source")
       (lib.filter (mode: base16.${mode} == null && cfg.base16.scheme.${mode}.filters != []) modes);
 
-    home.packages = with cfg.packages; [
-      matugen
-      noctalia
-    ];
+    home.packages = [cfg.packages.matugen];
 
     home.activation.m3nixPlaceholders = lib.mkIf (cfg.placeholders != []) (lib.hm.dag.entryAfter ["writeBoundary"] ''
       for file in ${lib.escapeShellArgs cfg.placeholders}; do
@@ -261,7 +265,7 @@ in {
       in {
         input_path = "${themeJsonTemplate}";
         output_path = themeJson;
-        post_hook = "${lib.getExe' cfg.packages.noctalia "noctalia"} theme --theme-json '${themeJson}' --default-mode {{ mode }} -c ${templatesToml}";
+        post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }} -c ${templatesToml}";
       };
     };
   };

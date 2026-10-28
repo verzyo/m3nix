@@ -1,8 +1,8 @@
 {
   inputs = {
-    # pinned to the tag nixpkgs builds pkgs.noctalia from, so built-in templates match the renderer
+    # source of both the built-in templates and the noctalia-theme renderer, so they always match
     noctalia = {
-      url = "github:noctalia-dev/noctalia/v5.3.0";
+      url = "github:noctalia-dev/noctalia";
       flake = false;
     };
 

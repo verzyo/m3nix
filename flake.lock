@@ -35,16 +35,15 @@
     "noctalia": {
       "flake": false,
       "locked": {
-        "lastModified": 1792070304,
-        "narHash": "sha256-gCF1P9r0UzPah0fqBTg2nVuxuuNnRxnYYHklvq8VKZI=",
+        "lastModified": 1793219310,
+        "narHash": "sha256-ZoYNSHi1Do0npDZB++MLmIlGJNfoXuSOUUwgLBEXPh0=",
         "owner": "noctalia-dev",
         "repo": "noctalia",
-        "rev": "a33122c4208a385e19c9a252e65e2751b2c44fbb",
+        "rev": "dda882752f4f406e714658fee7bba368fbdae684",
         "type": "github"
       },
       "original": {
         "owner": "noctalia-dev",
-        "ref": "v5.3.0",
         "repo": "noctalia",
         "type": "github"
       }
