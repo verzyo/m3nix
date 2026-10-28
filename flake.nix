@@ -32,8 +32,8 @@
     };
   in {
     homeModules = rec {
-      meowtugen = import ./nix/home.nix {inherit (inputs) dms themes;};
-      default = meowtugen;
+      m3owtugen = import ./nix/home.nix {inherit (inputs) dms themes;};
+      default = m3owtugen;
     };
 
     formatter.${system} = treefmtEval.config.build.wrapper;

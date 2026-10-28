@@ -9,7 +9,7 @@
 }: let
   root = ./..;
 
-  cfg = config.programs.meowtugen;
+  cfg = config.programs.m3owtugen;
   configHome = config.xdg.configHome;
 
   papirusTheme = "Papirus-Meowtugen";
@@ -77,7 +77,7 @@
     then "meowtugen.css"
     else "userChrome.css";
 in {
-  options.programs.meowtugen = {
+  options.programs.m3owtugen = {
     enable = lib.mkEnableOption "meowtugen matugen templates";
 
     autoEnable = lib.mkOption {
@@ -91,7 +91,7 @@ in {
     btop.enable = lib.mkOption {
       type = lib.types.bool;
       default = cfg.autoEnable;
-      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+      defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
       description = "Whether to enable the btop template.";
     };
 
@@ -99,7 +99,7 @@ in {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = cfg.autoEnable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
         description = "Whether to enable the Yazi file manager template.";
       };
 
@@ -110,7 +110,7 @@ in {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = cfg.autoEnable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
         description = "Whether to enable the Dolphin / KDE file manager template. Outside Plasma, Qt apps only read kdeglobals with the kde platform theme; see setQtPlatformTheme.";
       };
 
@@ -128,7 +128,7 @@ in {
           if cfg.papirus.enable
           then papirusTheme
           else "breeze-dark";
-        defaultText = lib.literalExpression ''if config.programs.meowtugen.papirus.enable then "${papirusTheme}" else "breeze-dark"'';
+        defaultText = lib.literalExpression ''if config.programs.m3owtugen.papirus.enable then "${papirusTheme}" else "breeze-dark"'';
         description = "Icon theme written to kdeglobals.";
       };
     };
@@ -137,7 +137,7 @@ in {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = cfg.dolphin.enable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.dolphin.enable";
+        defaultText = lib.literalExpression "config.programs.m3owtugen.dolphin.enable";
         description = "Whether to generate ${papirusTheme}, a Papirus-Dark overlay with folder icons recolored to the matugen primary palette. Requires the Dolphin template.";
       };
 
@@ -148,7 +148,7 @@ in {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = cfg.autoEnable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
         description = "Whether to enable the Discord client template.";
       };
 
@@ -162,7 +162,7 @@ in {
     zed.enable = lib.mkOption {
       type = lib.types.bool;
       default = cfg.autoEnable;
-      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+      defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
       description = "Whether to enable the Zed editor template.";
     };
 
@@ -170,7 +170,7 @@ in {
       enable = lib.mkOption {
         type = lib.types.bool;
         default = cfg.autoEnable;
-        defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+        defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
         description = "Whether to enable the Zen browser template.";
       };
 
@@ -190,14 +190,14 @@ in {
     foot.enable = lib.mkOption {
       type = lib.types.bool;
       default = cfg.autoEnable;
-      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+      defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
       description = "Whether to enable the foot terminal template.";
     };
 
     niri.enable = lib.mkOption {
       type = lib.types.bool;
       default = cfg.autoEnable;
-      defaultText = lib.literalExpression "config.programs.meowtugen.autoEnable";
+      defaultText = lib.literalExpression "config.programs.m3owtugen.autoEnable";
       description = "Whether to enable the niri wm template.";
     };
 
@@ -213,7 +213,7 @@ in {
       assertions = [
         {
           assertion = cfg.papirus.enable -> cfg.dolphin.enable;
-          message = "programs.meowtugen.papirus requires programs.meowtugen.dolphin.enable, which writes the palette it reads.";
+          message = "programs.m3owtugen.papirus requires programs.m3owtugen.dolphin.enable, which writes the palette it reads.";
         }
       ];
 
