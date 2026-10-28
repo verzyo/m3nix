@@ -16,22 +16,6 @@
         "type": "github"
       }
     },
-    "dms": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793204647,
-        "narHash": "sha256-Dp0Z0/n6k3CB94vp+eQ0Jruvz2o1mLLfF1x45plSQ/g=",
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
-        "rev": "2dd237a3af8782359b479d7ab00c593913446ef4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "AvengeMedia",
-        "repo": "DankMaterialShell",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1793110635,
@@ -48,29 +32,29 @@
         "type": "github"
       }
     },
-    "root": {
-      "inputs": {
-        "community-templates": "community-templates",
-        "dms": "dms",
-        "nixpkgs": "nixpkgs",
-        "themes": "themes",
-        "treefmt": "treefmt"
-      }
-    },
-    "themes": {
+    "noctalia": {
       "flake": false,
       "locked": {
-        "lastModified": 1791901555,
-        "narHash": "sha256-Q7ZT+att54qFSsJUfY/Gkz948dZRNzPJ6YehUhLGgEE=",
-        "owner": "InioX",
-        "repo": "matugen-themes",
-        "rev": "db7dcfefd1151980e0b727fcb05aadaf4c938799",
+        "lastModified": 1792070304,
+        "narHash": "sha256-gCF1P9r0UzPah0fqBTg2nVuxuuNnRxnYYHklvq8VKZI=",
+        "owner": "noctalia-dev",
+        "repo": "noctalia",
+        "rev": "a33122c4208a385e19c9a252e65e2751b2c44fbb",
         "type": "github"
       },
       "original": {
-        "owner": "InioX",
-        "repo": "matugen-themes",
+        "owner": "noctalia-dev",
+        "ref": "v5.3.0",
+        "repo": "noctalia",
         "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "community-templates": "community-templates",
+        "nixpkgs": "nixpkgs",
+        "noctalia": "noctalia",
+        "treefmt": "treefmt"
       }
     },
     "treefmt": {
