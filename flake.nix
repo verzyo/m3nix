@@ -26,16 +26,15 @@
   } @ inputs: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
-
-    treefmtEval = treefmt.lib.evalModule pkgs {
-      imports = [./nix/formatter.nix];
-    };
   in {
     homeModules = rec {
       m3owtugen = import ./nix/home.nix {inherit (inputs) dms themes;};
       default = m3owtugen;
     };
 
-    formatter.${system} = treefmtEval.config.build.wrapper;
+    formatter.${system} =
+      (treefmt.lib.evalModule pkgs {
+        imports = [./nix/formatter.nix];
+      }).config.build.wrapper;
   };
 }
