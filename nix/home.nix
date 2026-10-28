@@ -1,6 +1,7 @@
 {
   dms,
   themes,
+  community-templates,
 }: {
   pkgs,
   lib,

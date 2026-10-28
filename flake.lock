@@ -1,13 +1,29 @@
 {
   "nodes": {
+    "community-templates": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793086136,
+        "narHash": "sha256-Dq1c9cCcZ0RqBiN6viDv3LQxwMIaJwLBGegjLM9B7OQ=",
+        "owner": "noctalia-dev",
+        "repo": "community-templates",
+        "rev": "863779380fcd71db37eb61ced76a17035fe42155",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noctalia-dev",
+        "repo": "community-templates",
+        "type": "github"
+      }
+    },
     "dms": {
       "flake": false,
       "locked": {
-        "lastModified": 1791300515,
-        "narHash": "sha256-ZPG/XLeFD1QCqgLT76m1u/5sAK2EC9afBxwQ1FyxHAw=",
+        "lastModified": 1793204647,
+        "narHash": "sha256-Dp0Z0/n6k3CB94vp+eQ0Jruvz2o1mLLfF1x45plSQ/g=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "9cceff29dd3cd8e4029ba6d5d52393d4c5d06704",
+        "rev": "2dd237a3af8782359b479d7ab00c593913446ef4",
         "type": "github"
       },
       "original": {
@@ -18,11 +34,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1791260994,
-        "narHash": "sha256-Miqqk/ammqnTUxaoCyvtwoPeLbI1ksFyLxi/CazZpWY=",
+        "lastModified": 1793110635,
+        "narHash": "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "151fa4e8ddfdd8dd25d945ad94ed54a13de9f6e4",
+        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
         "type": "github"
       },
       "original": {
@@ -34,6 +50,7 @@
     },
     "root": {
       "inputs": {
+        "community-templates": "community-templates",
         "dms": "dms",
         "nixpkgs": "nixpkgs",
         "themes": "themes",
@@ -43,11 +60,11 @@
     "themes": {
       "flake": false,
       "locked": {
-        "lastModified": 1787988654,
-        "narHash": "sha256-nUfF1KyKK2BherOwPwai6JzsrykP/zKxiAmoi7TTlvw=",
+        "lastModified": 1791901555,
+        "narHash": "sha256-Q7ZT+att54qFSsJUfY/Gkz948dZRNzPJ6YehUhLGgEE=",
         "owner": "InioX",
         "repo": "matugen-themes",
-        "rev": "707c7b7d3550c9c21c0a8d72186748b1d205b88b",
+        "rev": "db7dcfefd1151980e0b727fcb05aadaf4c938799",
         "type": "github"
       },
       "original": {
@@ -63,11 +80,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791203292,
-        "narHash": "sha256-vuzVwvjeucSnwKwMBpyP8r5IzdrMKCHEdwTrRFwUN7I=",
+        "lastModified": 1791885023,
+        "narHash": "sha256-C3alQ2MEt0zVrUSho5NUDo3jmhbff72++bfwoqT9Omo=",
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "rev": "03d8ee1bcbc8f9638907bb79edb9673151d0e22b",
+        "rev": "0d6d739a833ba9a9c93034862e4a7b061a062a1c",
         "type": "github"
       },
       "original": {

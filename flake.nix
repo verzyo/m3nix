@@ -10,6 +10,11 @@
       flake = false;
     };
 
+    community-templates = {
+      url = "github:noctalia-dev/community-templates";
+      flake = false;
+    };
+
     treefmt = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,7 +33,7 @@
     pkgs = import nixpkgs {inherit system;};
   in {
     homeModules = rec {
-      m3owtugen = import ./nix/home.nix {inherit (inputs) dms themes;};
+      m3owtugen = import ./nix/home.nix {inherit (inputs) dms themes community-templates;};
       default = m3owtugen;
     };
 
