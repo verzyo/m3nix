@@ -60,6 +60,21 @@
     inherit templates;
   };
 
+  # noctalia expands these when rendering, home manager needs the real paths
+  pathVars = {
+    "$XDG_CONFIG_HOME" = config.xdg.configHome;
+    "$XDG_DATA_HOME" = config.xdg.dataHome;
+    "$XDG_STATE_HOME" = config.xdg.stateHome;
+    "$XDG_CACHE_HOME" = config.xdg.cacheHome;
+    "~" = config.home.homeDirectory;
+  };
+  expandPath = path: let
+    var = lib.findFirst (var: lib.hasPrefix var path) null (lib.attrNames pathVars);
+  in
+    if var == null
+    then path
+    else pathVars.${var} + lib.removePrefix var path;
+
   # base16 slot for each ansi color, bright ones from base24 when the scheme has them
   ansiSlots = {
     red = {
@@ -142,6 +157,8 @@
     }
   '';
 in {
+  imports = [./wiring.nix];
+
   options.m3nix = {
     enable = lib.mkEnableOption "m3nix theming";
 
@@ -153,8 +170,27 @@ in {
     apps =
       lib.mapAttrs (_: app: {
         enable = lib.mkEnableOption "the ${app.name} template (${app.category})";
+
+        outputs = lib.mkOption {
+          type = lib.types.attrsOf (lib.types.either lib.types.str (lib.types.listOf lib.types.str));
+          readOnly = true;
+          default = lib.mapAttrs (_: spec:
+            if builtins.isList spec.output_path
+            then map expandPath spec.output_path
+            else expandPath spec.output_path)
+          (lib.filterAttrs (_: spec: isSupported spec && spec ? output_path) app.entries);
+          defaultText = lib.literalMD "the output paths of the ${app.name} template entries, with XDG variables expanded";
+          description = "Where each ${app.name} template entry is rendered to, for wiring the app to its theme.";
+        };
       })
       apps;
+
+    # files the wiring includes, created empty until the first render so the apps still start
+    placeholders = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      internal = true;
+    };
 
     base16.scheme = lib.genAttrs modes (mode: {
       source = lib.mkOption {
@@ -201,6 +237,15 @@ in {
       matugen
       noctalia
     ];
+
+    home.activation.m3nixPlaceholders = lib.mkIf (cfg.placeholders != []) (lib.hm.dag.entryAfter ["writeBoundary"] ''
+      for file in ${lib.escapeShellArgs cfg.placeholders}; do
+        if [ ! -e "$file" ]; then
+          run mkdir -p "$(dirname "$file")"
+          run touch "$file"
+        fi
+      done
+    '');
 
     xdg.configFile."matugen/config.toml".source = (pkgs.formats.toml {}).generate "matugen-config.toml" {
       config = {};
