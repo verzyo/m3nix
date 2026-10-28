@@ -104,7 +104,7 @@
 
   modes = ["dark" "light"];
 
-  base16 = lib.genAttrs modes (mode: lib.mapNullable schemeColors cfg.base16.scheme.${mode});
+  base16 = lib.genAttrs modes (mode: lib.mapNullable schemeColors cfg.base16.scheme.${mode}.source);
   missingSlots = mode:
     lib.optionals (base16.${mode} != null)
     (lib.filter (slot: !(base16.${mode} ? ${slot})) (lib.mapAttrsToList (_: slots: slots.normal) ansiSlots));
@@ -112,10 +112,16 @@
   # noctalia fills in any terminal token missing here from the m3 roles
   base16Tokens = mode: let
     colors = base16.${mode};
+    filters = cfg.base16.scheme.${mode}.filters;
+    # theme.json must hold plain #rrggbb, the app templates do their own formatting
+    filtered = color:
+      if filters == []
+      then color
+      else ''{{ "${color}" | to_color | ${lib.concatStringsSep " | " filters} | format: "hex" }}'';
   in
     lib.optionalAttrs (colors != null) (lib.concatMapAttrs (name: slots: {
-        "terminal_normal_${name}" = colors.${slots.normal};
-        "terminal_bright_${name}" = colors.${slots.bright} or colors.${slots.normal};
+        "terminal_normal_${name}" = filtered colors.${slots.normal};
+        "terminal_bright_${name}" = filtered (colors.${slots.bright} or colors.${slots.normal});
       })
       ansiSlots);
 
@@ -150,8 +156,8 @@ in {
       })
       apps;
 
-    base16.scheme = lib.genAttrs modes (mode:
-      lib.mkOption {
+    base16.scheme = lib.genAttrs modes (mode: {
+      source = lib.mkOption {
         type = lib.types.nullOr (lib.types.oneOf [lib.types.path lib.types.str (lib.types.attrsOf lib.types.str)]);
         default = null;
         example = lib.literalExpression ''"''${pkgs.base16-schemes}/share/themes/catppuccin-${
@@ -163,18 +169,33 @@ in {
           Base16 or base24 scheme for the ${mode} mode terminal colors, as a Tinted Theming yaml file
           or an attrset of `baseXX` colors. When null, noctalia derives them from the material roles.
         '';
-      });
+      };
+
+      filters = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        example = ["blend: {{ colors.primary.${mode}.hex }}, 0.3" ''saturate: 10.0, "hsl"''];
+        description = ''
+          Matugen filters applied in order to each ${mode} mode base16 color, written without the
+          leading `|`. They can reference the generated palette, e.g. `{{ colors.primary.${mode}.hex }}`.
+          Leave out `format`, m3nix always outputs hex and the app templates format it themselves.
+        '';
+      };
+    });
   };
 
   config = lib.mkIf cfg.enable {
     assertions =
       map (mode: {
         assertion = missingSlots mode == [];
-        message = "m3nix: base16.scheme.${mode} is missing ${lib.concatMapStringsSep ", " (slot: "base${slot}") (missingSlots mode)}";
+        message = "m3nix: base16.scheme.${mode}.source is missing ${lib.concatMapStringsSep ", " (slot: "base${slot}") (missingSlots mode)}";
       })
       modes;
 
-    warnings = map (entry: "m3nix: skipping template ${entry}, it uses dynamic paths or a gtk extension, which are not supported yet") skipped;
+    warnings =
+      map (entry: "m3nix: skipping template ${entry}, it uses dynamic paths or a gtk extension, which are not supported yet") skipped
+      ++ map (mode: "m3nix: base16.scheme.${mode}.filters has no effect without base16.scheme.${mode}.source")
+      (lib.filter (mode: base16.${mode} == null && cfg.base16.scheme.${mode}.filters != []) modes);
 
     home.packages = with cfg.packages; [
       matugen
