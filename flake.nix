@@ -33,6 +33,10 @@
       default = m3nix;
     };
 
+    packages.${system}.noctalia-theme = pkgs.callPackage ./nix/noctalia-theme/package.nix {
+      src = inputs.noctalia;
+    };
+
     formatter.${system} =
       (treefmt.lib.evalModule pkgs {
         imports = [./nix/formatter.nix];
