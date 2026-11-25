@@ -13,13 +13,10 @@ in {
       m3nix.placeholders = [cfg.apps.foot.outputs.foot];
     }))
 
-    # zed loads every file in its themes directory, so only the selection is needed
+    # zed loads every file in its themes directory, so only the selection is needed. m3nix's zed
+    # template is a single theme that follows matugen's mode, so one name covers both
     (wire "zed" (lib.mkIf config.programs.zed-editor.enable {
-      programs.zed-editor.userSettings.theme = lib.mkDefault {
-        mode = "system";
-        dark = "Noctalia Dark";
-        light = "Noctalia Light";
-      };
+      programs.zed-editor.userSettings.theme = lib.mkDefault "M3nix";
     }))
   ];
 }

@@ -1,0 +1,9 @@
+[catalog.zed]
+name = "Zed"
+category = "editor"
+# rendered by noctalia so it gets the base16 terminal tokens, matugen renders own templates by default
+renderer = "noctalia"
+
+[templates.zed]
+input_path = "zed.json"
+output_path = "$XDG_CONFIG_HOME/zed/themes/m3nix.json"

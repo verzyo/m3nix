@@ -34,8 +34,9 @@
   };
   cfg = hm.config;
 
-  # paths as the shell sees them, so it expands the same $XDG_* variables noctalia does
-  shellPath = path: ''"${lib.replaceStrings [''"'' "`" "~/"] [''\"'' "\\`" "$HOME/"] path}"'';
+  # paths as the shell sees them, so it expands the same $XDG_* variables noctalia does; matugen
+  # entries come already expanded against the fake home
+  shellPath = path: ''"${lib.replaceStrings [''"'' "`" "~/" "${home}/"] [''\"'' "\\`" "$HOME/" "$HOME/"] path}"'';
   inHome = path: !(lib.hasPrefix "/" path);
 
   # entries gated on a system path (e.g. /usr/bin/app) can't be faked here, the rest all must render

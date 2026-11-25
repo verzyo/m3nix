@@ -17,24 +17,33 @@
       meta
       // {
         dir = templatesDir;
+        renderer = "noctalia";
         entries = {${id} = builtinToml.templates.${id};};
       })
     builtinToml.catalog;
 
-  communityApps = lib.concatMapAttrs (dir: type: let
-    templatePath = "${community-templates}/${dir}/template.toml";
-    templateToml = lib.importTOML templatePath;
-  in
-    lib.optionalAttrs (type == "directory" && builtins.pathExists templatePath) {
-      ${dir} =
-        templateToml.catalog.${dir}
-        // {
-          dir = "${community-templates}/${dir}";
-          entries = templateToml.templates or {};
-        };
-    }) (builtins.readDir community-templates);
+  # one app per <dir>/template.toml, the community-templates layout; a catalog entry can pick its
+  # renderer with `renderer = "noctalia" | "matugen"`
+  readCatalog = root: defaultRenderer:
+    lib.concatMapAttrs (dir: type: let
+      templatePath = "${root}/${dir}/template.toml";
+      templateToml = lib.importTOML templatePath;
+    in
+      lib.optionalAttrs (type == "directory" && builtins.pathExists templatePath) {
+        ${dir} =
+          {renderer = defaultRenderer;}
+          // templateToml.catalog.${dir}
+          // {
+            dir = "${root}/${dir}";
+            entries = templateToml.templates or {};
+          };
+      }) (builtins.readDir root);
 
-  apps = builtinApps // communityApps; # community entries win (on dupe)
+  communityApps = readCatalog community-templates "noctalia";
+  # m3nix's own templates default to matugen, so plain matugen templates work as they are
+  ownApps = readCatalog ../templates "matugen";
+
+  apps = builtinApps // communityApps // ownApps; # later catalogs win on the same id
   enabledApps = lib.filterAttrs (id: _: cfg.apps.${id}.enable) apps;
 
   cleanEntry = dir: spec: let
@@ -53,15 +62,23 @@
     !(spec ? input_path_dynamic || spec ? output_path_dynamic || spec ? gtk_extension)
     && lib.all isAbsolute (lib.toList (spec.output_path or "/"));
 
-  templates = lib.concatMapAttrs (_: app:
-    lib.mapAttrs (_: cleanEntry app.dir) (lib.filterAttrs (_: isSupported) app.entries))
-  enabledApps;
+  entriesFor = renderer:
+    lib.concatMapAttrs (_: app:
+      lib.mapAttrs (_: cleanEntry app.dir) (lib.filterAttrs (_: isSupported) app.entries))
+    (lib.filterAttrs (_: app: app.renderer == renderer) enabledApps);
   skipped = lib.concatLists (lib.mapAttrsToList (id: app:
     map (entry: "${id}.${entry}") (lib.attrNames (lib.filterAttrs (_: spec: !isSupported spec) app.entries)))
   enabledApps);
 
+  noctaliaTemplates = entriesFor "noctalia";
+  # matugen expands neither the XDG variables nor requires_path, so hand it plain paths
+  matugenTemplates = lib.mapAttrs (_: spec: {
+    inherit (spec) input_path;
+    output_path = expandPath spec.output_path;
+  }) (entriesFor "matugen");
+
   templatesToml = (pkgs.formats.toml {}).generate "m3nix-templates.toml" {
-    inherit templates;
+    templates = noctaliaTemplates;
   };
 
   # noctalia expands these when rendering, home manager needs the real paths
@@ -203,10 +220,10 @@ in {
       internal = true;
     };
 
-    # the template entries handed to noctalia-theme, for the checks
+    # every enabled template entry, whichever renderer it goes to, for the checks
     templates = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
-      default = templates;
+      default = noctaliaTemplates // matugenTemplates;
       readOnly = true;
       internal = true;
     };
@@ -266,19 +283,23 @@ in {
     xdg.configFile."matugen/config.toml".source = (pkgs.formats.toml {}).generate "matugen-config.toml" {
       config = {};
 
-      templates.m3nix = let
-        themeJson = "${config.xdg.cacheHome}/m3nix/theme.json";
-        themeJsonTemplate = pkgs.writeText "m3nix-theme.json" ''
-          {
-          ${themeJsonMode "dark"},
-          ${themeJsonMode "light"}
-          }
-        '';
-      in {
-        input_path = "${themeJsonTemplate}";
-        output_path = themeJson;
-        post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }} -c ${templatesToml}";
-      };
+      templates =
+        matugenTemplates
+        // {
+          m3nix = let
+            themeJson = "${config.xdg.cacheHome}/m3nix/theme.json";
+            themeJsonTemplate = pkgs.writeText "m3nix-theme.json" ''
+              {
+              ${themeJsonMode "dark"},
+              ${themeJsonMode "light"}
+              }
+            '';
+          in {
+            input_path = "${themeJsonTemplate}";
+            output_path = themeJson;
+            post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }} -c ${templatesToml}";
+          };
+        };
     };
   };
 }
