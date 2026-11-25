@@ -2,6 +2,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   cfg = config.m3nix;
@@ -12,6 +13,13 @@ in {
       programs.foot.settings.main.include = [cfg.apps.foot.outputs.foot];
       m3nix.placeholders = [cfg.apps.foot.outputs.foot];
     }))
+
+    # foot never rereads its config, so running terminals get the new colors over OSC
+    (wire "foot" {
+      m3nix.postRender = [
+        "${pkgs.writeShellScript "m3nix-foot-reload" (builtins.readFile ./foot-reload.sh)} ${lib.escapeShellArg cfg.apps.foot.outputs.foot}"
+      ];
+    })
 
     # zed loads every file in its themes directory, so only the selection is needed. m3nix's zed
     # template is a single theme that follows matugen's mode, so one name covers both

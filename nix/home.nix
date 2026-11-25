@@ -220,6 +220,13 @@ in {
       internal = true;
     };
 
+    # commands the wiring runs after each successful render, e.g. to reload running apps
+    postRender = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      internal = true;
+    };
+
     # every enabled template entry, whichever renderer it goes to, for the checks
     templates = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
@@ -303,7 +310,9 @@ in {
           in {
             input_path = "${themeJsonTemplate}";
             output_path = themeJson;
-            post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }}${lib.optionalString cfg.pureBlack " --pure-black"} -c ${templatesToml}";
+            post_hook =
+              "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }}${lib.optionalString cfg.pureBlack " --pure-black"} -c ${templatesToml}"
+              + lib.concatMapStrings (command: " && ${command}") cfg.postRender;
           };
         };
     };
