@@ -1,0 +1,11 @@
+# metrolist.properties is Metrolist's own matugen template, copied as is from
+# https://github.com/MetrolistGroup/Metrolist/blob/main/docs/matugen-template.properties
+[catalog.metrolist]
+name = "Metrolist"
+category = "music"
+
+# the app reloads the file whenever matugen rewrites it, and keeps its own light, dark and pure
+# black setting since the file carries both modes
+[templates.metrolist]
+input_path = "metrolist.properties"
+output_path = "$XDG_CONFIG_HOME/metrolist/matugen.properties"
