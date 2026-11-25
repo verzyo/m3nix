@@ -22,6 +22,7 @@
 
         m3nix = {
           enable = true;
+          pureBlack = true;
           apps = lib.mapAttrs (_: _: {enable = true;}) options.m3nix.apps;
           # exercises the base16 path in one mode and the derived terminal colors in the other
           base16.scheme.dark = {

@@ -228,6 +228,12 @@ in {
       internal = true;
     };
 
+    pureBlack = lib.mkEnableOption ''
+      noctalia's pure black dark mode for OLED screens: the dark surfaces are lowered so the
+      background is true black, keeping their relative steps. Text and accents are untouched.
+      Applies to the templates noctalia renders, not to ones rendered by matugen
+    '';
+
     base16.scheme = lib.genAttrs modes (mode: {
       source = lib.mkOption {
         type = lib.types.nullOr (lib.types.oneOf [lib.types.path lib.types.str (lib.types.attrsOf lib.types.str)]);
@@ -297,7 +303,7 @@ in {
           in {
             input_path = "${themeJsonTemplate}";
             output_path = themeJson;
-            post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }} -c ${templatesToml}";
+            post_hook = "${lib.getExe cfg.packages.noctalia-theme} --theme-json '${themeJson}' --default-mode {{ mode }}${lib.optionalString cfg.pureBlack " --pure-black"} -c ${templatesToml}";
           };
         };
     };

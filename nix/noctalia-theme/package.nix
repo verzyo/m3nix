@@ -59,6 +59,11 @@ stdenv.mkDerivation {
     echo '{{ colors.primary.default.hex }} {{ colors.terminal_normal_red.default.hex }}' > template.txt
     $out/bin/noctalia-theme --theme-json theme.json -r template.txt:rendered.txt
     grep -Eq '^#6750a4 #[0-9a-f]{6}$' rendered.txt
+
+    echo '{"dark": {"surface": "#141218", "primary": "#6750a4"}}' > theme.json
+    echo '{{ colors.surface.default.hex }} {{ colors.primary.default.hex }}' > template.txt
+    $out/bin/noctalia-theme --theme-json theme.json --pure-black -r template.txt:rendered.txt
+    grep -Eq '^#000000 #6750a4$' rendered.txt
     runHook postInstallCheck
   '';
 

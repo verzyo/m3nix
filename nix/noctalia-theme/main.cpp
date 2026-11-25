@@ -2,6 +2,7 @@
 #include "theme/color.h"
 #include "theme/fixed_palette.h"
 #include "theme/palette.h"
+#include "theme/palette_transform.h"
 #include "theme/template_engine.h"
 
 #include <cstdio>
@@ -17,7 +18,8 @@ namespace {
 
   void usage(const char* argv0) {
     std::fprintf(stderr,
-                 "usage: %s --theme-json <file> [--default-mode dark|light] [-c <templates.toml>] [-r <in:out>]...\n",
+                 "usage: %s --theme-json <file> [--default-mode dark|light] [--pure-black] [-c <templates.toml>] "
+                 "[-r <in:out>]...\n",
                  argv0);
   }
 
@@ -60,6 +62,7 @@ namespace {
 int main(int argc, char* argv[]) {
   std::string themeJson;
   std::string defaultMode = "dark";
+  bool pureBlack = false;
   std::string config;
   std::vector<std::string> renders;
 
@@ -70,6 +73,8 @@ int main(int argc, char* argv[]) {
       themeJson = argv[++i];
     else if (arg == "--default-mode" && hasValue)
       defaultMode = argv[++i];
+    else if (arg == "--pure-black")
+      pureBlack = true;
     else if ((arg == "-c" || arg == "--config") && hasValue)
       config = argv[++i];
     else if ((arg == "-r" || arg == "--render") && hasValue)
@@ -90,6 +95,9 @@ int main(int argc, char* argv[]) {
     return 1;
   // fills whatever terminal tokens theme.json left out, exactly like noctalia does
   theme::synthesizeTerminalPaletteTokens(palette);
+  // after the terminal tokens exist, so terminal_background drops to black with the surfaces
+  if (pureBlack)
+    theme::applyPureBlackDark(palette);
 
   theme::TemplateEngine::Options options;
   options.defaultMode = defaultMode;
