@@ -43,7 +43,23 @@
   # m3nix's own templates default to matugen, so plain matugen templates work as they are
   ownApps = readCatalog ../templates "matugen";
 
-  apps = builtinApps // communityApps // ownApps; # later catalogs win on the same id
+  # entries whose dynamic output script always prints the same file, so m3nix can render them;
+  # the check runs the upstream script and fails if it ever answers differently
+  pinnedOutputs = {
+    niri = "$XDG_CONFIG_HOME/niri/noctalia.kdl";
+  };
+  pinEntry = dir: name: spec:
+    if pinnedOutputs ? ${name} && spec ? output_path_dynamic
+    then
+      removeAttrs spec ["output_path_dynamic"]
+      // {
+        output_path = pinnedOutputs.${name};
+        pinnedFrom = lib.replaceStrings ["{{ config_dir }}"] [dir] spec.output_path_dynamic;
+      }
+    else spec;
+
+  # later catalogs win on the same id
+  apps = lib.mapAttrs (_: app: app // {entries = lib.mapAttrs (pinEntry app.dir) app.entries;}) (builtinApps // communityApps // ownApps);
   enabledApps = lib.filterAttrs (id: _: cfg.apps.${id}.enable) apps;
 
   cleanEntry = dir: spec: let
@@ -70,7 +86,14 @@
     map (entry: "${id}.${entry}") (lib.attrNames (lib.filterAttrs (_: spec: !isSupported spec) app.entries)))
   enabledApps);
 
-  noctaliaTemplates = entriesFor "noctalia";
+  noctaliaTemplates =
+    entriesFor "noctalia"
+    // lib.mapAttrs' (name: template:
+      lib.nameValuePair "extra-${name}" {
+        input_path = "${template.source}";
+        output_path = template.target;
+      })
+    cfg.extraTemplates;
   # matugen expands neither the XDG variables nor requires_path, so hand it plain paths
   matugenTemplates = lib.mapAttrs (_: spec: {
     inherit (spec) input_path;
@@ -227,12 +250,56 @@ in {
       internal = true;
     };
 
+    # the upstream script behind each enabled pinned output and the path m3nix assumes, for the checks
+    pinnedOutputs = lib.mkOption {
+      type = lib.types.listOf (lib.types.attrsOf lib.types.str);
+      default = lib.concatMap (app:
+        lib.mapAttrsToList (_: spec: {
+          command = spec.pinnedFrom;
+          expected = spec.output_path;
+        }) (lib.filterAttrs (_: spec: spec ? pinnedFrom) app.entries))
+      (lib.attrValues enabledApps);
+      readOnly = true;
+      internal = true;
+    };
+
     # every enabled template entry, whichever renderer it goes to, for the checks
     templates = lib.mkOption {
       type = lib.types.attrsOf lib.types.anything;
       default = noctaliaTemplates // matugenTemplates;
       readOnly = true;
       internal = true;
+    };
+
+    extraTemplates = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule {
+        options = {
+          source = lib.mkOption {
+            type = lib.types.path;
+            description = "The template, in noctalia's template syntax.";
+          };
+          target = lib.mkOption {
+            type = lib.types.str;
+            description = "Where it is rendered to.";
+          };
+        };
+      });
+      default = {};
+      example = lib.literalExpression ''
+        {
+          niri-overrides = {
+            source = pkgs.writeText "niri-overrides.kdl" '''
+              layout { border { inactive-color "{{ colors.outline.default.hex }}"; } }
+            ''';
+            target = "''${config.xdg.configHome}/niri/overrides.kdl";
+          };
+        }
+      '';
+      description = ''
+        Templates of your own, rendered by noctalia on every run like the catalog ones, so they get
+        the same tokens, base16 colors and pure black. Handy for tweaking an app's theme from a file
+        it loads after the catalog one.
+      '';
     };
 
     pureBlack = lib.mkEnableOption ''

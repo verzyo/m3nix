@@ -23,6 +23,10 @@
         m3nix = {
           enable = true;
           pureBlack = true;
+          extraTemplates.check = {
+            source = pkgs.writeText "m3nix-check-extra" "{{ colors.primary.default.hex }}";
+            target = "${home}/.config/m3nix-check/extra";
+          };
           apps = lib.mapAttrs (_: _: {enable = true;}) options.m3nix.apps;
           # exercises the base16 path in one mode and the derived terminal colors in the other
           base16.scheme.dark = {
@@ -55,7 +59,21 @@ in
     export XDG_CONFIG_HOME=$HOME/.config XDG_DATA_HOME=$HOME/.local/share \
       XDG_STATE_HOME=$HOME/.local/state XDG_CACHE_HOME=$HOME/.cache
     sed 's|${home}|'"$HOME"'|g' ${cfg.xdg.configFile."matugen/config.toml".source} > config.toml
+    # the noctalia templates file can hold absolute paths into the fake home too
+    templates=$(grep -o '/nix/store/[^ "]*-m3nix-templates.toml' config.toml)
+    sed 's|${home}|'"$HOME"'|g' "$templates" > templates.toml
+    sed -i "s|$templates|$PWD/templates.toml|" config.toml
     cat "$warningsPath"
+
+    # pinned outputs must still be where the upstream script says they are
+    ${lib.concatMapStringsSep "\n" (pin: ''
+        actual=$(${pin.command})
+        if [ "$actual" != ${shellPath pin.expected} ]; then
+          echo "pinned output moved upstream: ${pin.command} now prints $actual, m3nix assumes ${pin.expected}" >&2
+          exit 1
+        fi
+      '')
+      cfg.m3nix.pinnedOutputs}
 
     # pretend every app is installed so no entry gets skipped, both by requires_path and by
     # noctalia gating entries that share an input on their client's config dir existing
