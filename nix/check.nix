@@ -65,10 +65,10 @@ in
     # cleared before each mode so one mode can't pass on what the other rendered
     for mode in dark light; do
       echo "rendering $mode"
-      rm -f "''${outputs[@]}" "$XDG_STATE_HOME/m3nix/theme.json"
+      rm -f "''${outputs[@]}" "$XDG_CACHE_HOME/m3nix/theme.json"
       matugen color hex '#6750a4' --mode "$mode" --config config.toml
       jq -e '.dark.primary and .light.primary and .dark.terminal_normal_red' \
-        "$XDG_STATE_HOME/m3nix/theme.json" > /dev/null
+        "$XDG_CACHE_HOME/m3nix/theme.json" > /dev/null
 
       rendered=0 failed=0
       for file in "''${outputs[@]}"; do

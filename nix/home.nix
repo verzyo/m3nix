@@ -267,7 +267,7 @@ in {
       config = {};
 
       templates.m3nix = let
-        themeJson = "${config.xdg.stateHome}/m3nix/theme.json";
+        themeJson = "${config.xdg.cacheHome}/m3nix/theme.json";
         themeJsonTemplate = pkgs.writeText "m3nix-theme.json" ''
           {
           ${themeJsonMode "dark"},
