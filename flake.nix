@@ -16,12 +16,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # only used by the checks
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = {
     treefmt,
     nixpkgs,
+    home-manager,
     self,
     ...
   } @ inputs: let
@@ -35,6 +42,14 @@
 
     packages.${system}.noctalia-theme = pkgs.callPackage ./nix/noctalia-theme/package.nix {
       src = inputs.noctalia;
+    };
+
+    checks.${system} = {
+      inherit (self.packages.${system}) noctalia-theme;
+      render-all = import ./nix/check.nix {
+        inherit pkgs home-manager;
+        homeModule = self.homeModules.default;
+      };
     };
 
     formatter.${system} =

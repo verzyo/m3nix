@@ -47,7 +47,11 @@
       requires_path = spec.requires_path or null;
     };
 
-  isSupported = spec: !(spec ? input_path_dynamic || spec ? output_path_dynamic || spec ? gtk_extension);
+  # relative outputs only make sense next to the hook that consumes them, which m3nix does not run
+  isAbsolute = path: lib.any (prefix: lib.hasPrefix prefix path) (["/"] ++ lib.attrNames pathVars);
+  isSupported = spec:
+    !(spec ? input_path_dynamic || spec ? output_path_dynamic || spec ? gtk_extension)
+    && lib.all isAbsolute (lib.toList (spec.output_path or "/"));
 
   templates = lib.concatMapAttrs (_: app:
     lib.mapAttrs (_: cleanEntry app.dir) (lib.filterAttrs (_: isSupported) app.entries))
@@ -199,6 +203,14 @@ in {
       internal = true;
     };
 
+    # the template entries handed to noctalia-theme, for the checks
+    templates = lib.mkOption {
+      type = lib.types.attrsOf lib.types.anything;
+      default = templates;
+      readOnly = true;
+      internal = true;
+    };
+
     base16.scheme = lib.genAttrs modes (mode: {
       source = lib.mkOption {
         type = lib.types.nullOr (lib.types.oneOf [lib.types.path lib.types.str (lib.types.attrsOf lib.types.str)]);
@@ -236,7 +248,7 @@ in {
       modes;
 
     warnings =
-      map (entry: "m3nix: skipping template ${entry}, it uses dynamic paths or a gtk extension, which are not supported yet") skipped
+      map (entry: "m3nix: skipping template ${entry}, it uses dynamic or relative paths or a gtk extension, which are not supported yet") skipped
       ++ map (mode: "m3nix: base16.scheme.${mode}.filters has no effect without base16.scheme.${mode}.source")
       (lib.filter (mode: base16.${mode} == null && cfg.base16.scheme.${mode}.filters != []) modes);
 

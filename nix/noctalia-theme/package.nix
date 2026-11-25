@@ -1,4 +1,8 @@
 # noctalia's template engine on its own, built from whatever noctalia source it is given
+#
+# nothing here mirrors upstream's build by hand: plan.py takes the sources, include dirs and defines
+# from upstream, and the compile and link flags come from every pkg-config module in buildInputs.
+# if upstream gains a new dependency, adding its package to buildInputs is the only change needed.
 {
   lib,
   stdenv,
@@ -13,33 +17,30 @@
 }:
 stdenv.mkDerivation {
   pname = "noctalia-theme";
-  version = lib.fileContents "${src}/VERSION";
+  version =
+    lib.fileContents "${src}/VERSION"
+    + lib.optionalString (src ? lastModifiedDate) "-unstable-${lib.concatStringsSep "-" (builtins.match "(.{4})(.{2})(.{2}).*" src.lastModifiedDate)}";
 
   inherit src;
 
   nativeBuildInputs = [pkg-config python3];
   buildInputs = [glib nlohmann_json sdbus-cpp_2 systemd tomlplusplus];
 
-  # the source list follows upstream's includes, so new engine files need no change here
   buildPhase = ''
     runHook preBuild
 
-    {
-      python3 -I ${./sources.py} . ${./main.cpp}
-      echo ${./main.cpp}
-      find third_party/material_color_utilities/cpp -name '*.cc' ! -name '*_test.cc'
-    } > sources.txt
+    python3 -I ${./plan.py} . sources.txt cflags.txt ${./main.cpp}
 
-    export NOCTALIA_CXXFLAGS="-std=c++23 -O2 -w -Isrc -isystem third_party/material_color_utilities \
-      -DNOCTALIA_INSTALL_PREFIX=\"$out\" -DNOCTALIA_INSTALL_DATADIR=\"share\" -DNOCTALIA_VERSION=\"$version\" \
-      $(pkg-config --cflags gio-2.0 sdbus-c++ tomlplusplus nlohmann_json)"
+    modules=$(pkg-config --list-all | cut -d' ' -f1 | sort)
+    echo "-std=c++23 -O2 -w $(pkg-config --cflags $modules)" >> cflags.txt
 
     mkdir obj
+    n=0
     while read -r file; do
-      echo "$file obj/$(echo "$file" | tr / _).o"
-    done < sources.txt | xargs -P "$NIX_BUILD_CORES" -n 2 sh -c '$CXX $NOCTALIA_CXXFLAGS -c "$1" -o "$2"' _
+      echo "$file obj/$((n++)).o"
+    done < sources.txt | xargs -P "$NIX_BUILD_CORES" -n 2 sh -c '$CXX @cflags.txt -c "$1" -o "$2"' _
 
-    $CXX obj/*.o $(pkg-config --libs gio-2.0 sdbus-c++ tomlplusplus) -o noctalia-theme
+    $CXX obj/*.o -Wl,--as-needed $(pkg-config --libs $modules) -o noctalia-theme
 
     runHook postBuild
   '';
@@ -48,6 +49,17 @@ stdenv.mkDerivation {
     runHook preInstall
     install -Dm755 noctalia-theme $out/bin/noctalia-theme
     runHook postInstall
+  '';
+
+  # renders a template, so a binary that links but no longer works fails the build
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+    echo '{"dark": {"primary": "#6750a4"}}' > theme.json
+    echo '{{ colors.primary.default.hex }} {{ colors.terminal_normal_red.default.hex }}' > template.txt
+    $out/bin/noctalia-theme --theme-json theme.json -r template.txt:rendered.txt
+    grep -Eq '^#6750a4 #[0-9a-f]{6}$' rendered.txt
+    runHook postInstallCheck
   '';
 
   meta = {
